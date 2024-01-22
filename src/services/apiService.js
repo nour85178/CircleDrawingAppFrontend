@@ -17,6 +17,8 @@ export default {
   },
 
   getCirclesBySetId(setId) {
-    return apiClient.get(`/circles/${setId}`);
+    // Allow the method to accept an optional setId parameter
+    const url = setId ? `/circles/${setId}` : '/circles';
+    return apiClient.get(url);
   },
 };

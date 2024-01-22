@@ -11,6 +11,7 @@
       </div>
     </div>
     <button @click="submitCircle">Submit</button>
+    <button @click="promptForSetId">Load Circles</button>
     <canvas ref="canvas" @click="drawCircle"></canvas>
     <div>
       <strong>Drawn Circle:</strong>
@@ -34,7 +35,9 @@ export default {
         diameter: 0,
         color: '',
         setId: '',
+        desiredSetId: ''
       },
+      existingCircles: [],
     };
   },
   computed: {
@@ -48,6 +51,37 @@ export default {
       return this.isValidX && this.isValidY;
     },
   },
+
+  watch: {
+    $route(to) {
+      // Fetch circles when the route changes
+      this.getCirclesBySetId(to.params.setId);
+    },
+  },
+
+  beforeRouteEnter(to, from, next) {
+  // Fetch circles before the component is created
+  apiService.getCirclesBySetId(to.params.setId)
+    .then(response => {
+      const circles = response.data;
+      next(vm => {
+        vm.existingCircles = circles;
+        vm.drawExistingCircles();
+      });
+    })
+    .catch(error => {
+      console.error('Error fetching circles:', error);
+      next(); // proceed with component creation even if there's an error
+    });
+},
+
+
+  beforeRouteUpdate(to,  next) {
+  // Fetch circles before the route is updated
+  this.getCirclesBySetId(to.params.setId); // eslint-disable-line no-unused-vars
+  next();
+},
+
   methods: {
     
    async submitCircle() {
@@ -76,6 +110,38 @@ export default {
     }
   }
 },
+async getCirclesBySetId(setId) {
+  try {
+    // Pass the setId parameter to the API service method
+    const response = await apiService.getCirclesBySetId(setId);
+    console.log('Fetched Circles:', response.data);
+    this.existingCircles = response.data;
+    this.drawExistingCircles();
+  } catch (error) {
+    console.error('Error fetching circles:', error);
+  }
+  //this.getCirclesBySetId(this.desiredSetId);
+    },
+    promptForSetId() {
+  this.desiredSetId = prompt('Enter the desired setId:');
+  if (this.desiredSetId) {
+    // Use Vue Router to navigate to the route with the desired Set ID
+    this.$router.push({ name: 'CircleDrawing', params: { setId: this.desiredSetId } });
+  }
+},
+  drawExistingCircles() {
+      const ctx = this.$refs.canvas.getContext('2d');
+  ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+
+  for (const circle of this.existingCircles) {
+    const { x: centerX, y: centerY, diameter, color } = circle; // Map properties accordingly
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, diameter / 2, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.closePath();
+  }
+    },
     drawCircle() {
       // Draw circle on the canvas based on user input
       const ctx = this.$refs.canvas.getContext('2d');
@@ -96,11 +162,12 @@ export default {
       const randomX = Math.random() * maxX;
       const randomY = Math.random() * maxY;
 
+
       // Calculate the actual position of the circle within the canvas
       const circleX = Math.min(maxX, Math.max(0, centerX + (randomX - centerX)));
       const circleY = Math.min(maxY, Math.max(0, centerY + (randomY - centerY)));
 
-      const setId = this.generateSetId();
+      const setId = this.generateSetId(this.x, this.y);
 
       if (this.lastSubmission.x === this.x && this.lastSubmission.y === this.y) {
         // If current x and y are the same as the last submission, use the same setId
@@ -122,9 +189,9 @@ export default {
       this.drawnCircle.setId = setId;
 
     },
-    generateSetId() {
+    generateSetId(x,y) {
       // Generate a unique setId using a combination of timestamp and random number
-      return `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      return `${x}-${y}`;
     },
   },
 };
