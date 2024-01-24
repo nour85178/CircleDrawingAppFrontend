@@ -10,6 +10,11 @@ const routes = [
       name: 'CircleDrawing',
       component: CircleDrawing,
     },
+    {
+        path: '/new/:newId',
+        name: 'CircleDrawingWithNewId',
+        component: CircleDrawing,
+      },
     // Add other routes as needed
   ];
   
