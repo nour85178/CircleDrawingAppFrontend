@@ -20,23 +20,17 @@ import CircleDrawing from './components/CircleDrawing.vue';
 export default {
   methods: {
     handleUserInteraction() {
-    // Set the flag to true once there's user interaction
     this.$root.hasUserInteracted = true;
 
-    // Remove the event listener to avoid unnecessary checks
     document.body.removeEventListener('click', this.handleUserInteraction);
 
-    // Play the audio
     this.$refs.audio.play();
   },
 
   playAudio() {
-    // Check if the document has received user interaction
     const hasUserInteracted = this.$root.hasUserInteracted;
 
     if (!hasUserInteracted) {
-      // If not, wait for user interaction to play the audio
-      // Note: The actual playing will happen in handleUserInteraction
       return;
     }},
 }
@@ -65,8 +59,8 @@ export default {
   text-align: center;
   color: #2c3e50;
   background-image: url('./assets/png.png');
-  background-size: cover; /* This will make sure the image covers the entire #app container */
-  min-height: 100vh; /* This ensures that the #app container takes at least the full height of the viewport */
+  background-size: cover; 
+  min-height: 100vh; 
   position: relative;
 }
 
@@ -98,14 +92,13 @@ footer {
   font-size: 2rem;
   color: #fff;
   margin-top: 20px;
-  opacity: 0; /* Initially set the opacity to 0 */
-  animation: fadeInTitle 3.5s ease forwards; /* Animation duration and type */
-
+  opacity: 0; 
+  animation: fadeInTitle 3.5s ease forwards;
 }
 
 @keyframes fadeInTitle {
   to {
-    opacity: 1; /* Fade in by setting opacity to 1 */
+    opacity: 1; 
   }
 }
 </style>

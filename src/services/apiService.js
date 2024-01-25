@@ -1,5 +1,5 @@
 import axios from 'axios';
-//import { v4 as uuidv4 } from 'uuid'; // Import the v4 function from the uuid libra
+//import { v4 as uuidv4 } from 'uuid'; 
 
 const apiClient = axios.create({
   baseURL: 'https://localhost:5001/api',
@@ -18,7 +18,6 @@ export default {
   },
 
   getCirclesBySetId(setId) {
-    // Allow the method to accept an optional setId parameter
     const url = setId ? `/circles/${setId}` : '/circles';
     return apiClient.get(url);
   },

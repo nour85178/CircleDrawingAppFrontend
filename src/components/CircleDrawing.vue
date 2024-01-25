@@ -88,7 +88,6 @@ export default {
   },
 
   beforeRouteEnter(to, from, next) {
-  // Fetch circles before the component is created
   apiService.getCirclesBySetId(to.params.setId)
     .then(response => {
       const circles = response.data;
@@ -99,14 +98,13 @@ export default {
     })
     .catch(error => {
       console.error('Error fetching circles:', error);
-      next(); // proceed with component creation even if there's an error
+      next(); 
     });
 },
 
 
   beforeRouteUpdate(to,  next) {
-  // Fetch circles before the route is updated
-  this.getCirclesBySetId(to.params.setId); // eslint-disable-line no-unused-vars
+  this.getCirclesBySetId(to.params.setId);
   next();
 },
 
@@ -116,39 +114,32 @@ export default {
     async generateNewId() {
       console.log(this.$router);
       try {
-        // Make a request to the backend API to generate a new ID
         const response = await apiService.get('/circles/GenerateNewId');
 
-        // Extract the new ID from the response
         const newId = response.data.newId;
 
         await this.$router.push({ name: 'CircleDrawingWithNewId', params: { newId }});
 
         return newId;
       } catch (error) {
-        // Handle errors appropriately (e.g., log, throw, etc.)
         console.error('Error generating new ID:', error);
-        throw error; // Propagate the error or handle it as needed
+        throw error; 
       }
       },
     
       clearInputFields() {
-      // Clear the input fields
       this.x = 0;
       this.y = 0;
       },
 
       clearCanvas() {
-      // Clear the canvas by redrawing it with no circles
       const ctx = this.$refs.canvas.getContext('2d');
       ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
 
-      // Clear the drawn circles data
       this.drawnCircles = [];
       },
 
       clearTable() {
-      // Clear the table by emptying the existingCircles array
       this.existingCircles = [];
       },
 
@@ -170,9 +161,8 @@ export default {
 
           const response = await apiService.submitCircle(requestData);
           
-          console.log(response.data); // Log the server response
+          console.log(response.data);
         
-          // Update the last submission
           this.lastSubmission.x = this.x;
           this.lastSubmission.y = this.y;
           this.lastSubmission.setId = this.drawnCircle.setId;
@@ -181,29 +171,23 @@ export default {
         }
         }
         else {
-        // Display an alert for invalid form
         alert('Invalid input! Please enter positive values for X and Y.');
       }
     },
       async getCirclesBySetId(setId) {
         try {
 
-          // Pass the setId parameter to the API service method
           const response = await apiService.getCirclesBySetId(setId);
           console.log('Fetched Circles:', response.data);
-          //this.existingCircles = response.data;
 
           const circles = response.data;
-          // Ensure existingCircles is an array
           this.existingCircles = Array.isArray(circles) ? circles : [];
 
           this.drawExistingCircles();
-          // Set the X and Y values directly based on the coordinates of the first circle
           if (this.existingCircles.length > 0) {
                 this.x = this.existingCircles[0].x;
                 this.y = this.existingCircles[0].y;
               } else {
-                // Default values if no circles are found
                 this.x = 0;
                 this.y = 0;
               }
@@ -216,7 +200,6 @@ export default {
           promptForSetId() {
         this.desiredSetId = prompt('Enter the desired setId:');
         if (this.desiredSetId) {
-          // Use Vue Router to navigate to the route with the desired Set ID
           this.$router.push({ name: 'CircleDrawing', params: { setId: this.desiredSetId } });
         }
       },
@@ -224,17 +207,14 @@ export default {
         const ctx = this.$refs.canvas.getContext('2d');
         ctx.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
 
-        // Sort circles by diameter (largest to smallest)
         const sortedCircles = this.existingCircles.slice().sort((a, b) => b.diameter - a.diameter);
 
         for (const circle of sortedCircles) {
           const { x: centerX, y: centerY, diameter, color } = circle; // Map properties accordingly
 
-          // Ensure the circle stays entirely within the canvas boundaries
           const maxX = this.$refs.canvas.width - diameter;
           const maxY = this.$refs.canvas.height - diameter;
 
-          // Calculate the actual position of the circle within the canvas
           const circleX = Math.min(maxX, Math.max(0, centerX - diameter / 2));
           const circleY = Math.min(maxY, Math.max(0, centerY - diameter / 2));
 
@@ -247,54 +227,46 @@ export default {
         }
       },
         drawCircle() {
-          // Draw circle on the canvas based on user input
           const ctx = this.$refs.canvas.getContext('2d');
 
-          // Calculate a random diameter and color
+          const centerX = this.x;
+          const centerY = this.y;
+
           const diameter = Math.random() * this.$refs.canvas.width / 2; // Limit diameter to half of the canvas width
           const color = getRandomColor();
 
-          // Calculate the center position of the circle
-          const centerX = this.$refs.canvas.width / 2;
-          const centerY = this.$refs.canvas.height / 2;
-
-          // Ensure the circle stays entirely within the canvas boundaries
           const maxX = this.$refs.canvas.width - diameter;
           const maxY = this.$refs.canvas.height - diameter;
 
-          // Calculate random positions within the canvas
-          const randomX = Math.random() * maxX;
-          const randomY = Math.random() * maxY;
+          //const randomX = Math.random() * maxX;
+          //const randomY = Math.random() * maxY;
 
-
-          // Calculate the actual position of the circle within the canvas
-          const circleX = Math.min(maxX, Math.max(0, centerX + (randomX - centerX)));
-          const circleY = Math.min(maxY, Math.max(0, centerY + (randomY - centerY)));
+          //const circleX = Math.min(maxX, Math.max(0, centerX + (randomX - centerX)));
+          //const circleY = Math.min(maxY, Math.max(0, centerY + (randomY - centerY)));
+          
+          const circleX = Math.min(maxX, Math.max(0, centerX - diameter / 2));
+          const circleY = Math.min(maxY, Math.max(0, centerY - diameter / 2));
 
           const setId = this.generateSetId(this.x, this.y);
 
           if (this.lastSubmission.x === this.x && this.lastSubmission.y === this.y) {
-            // If current x and y are the same as the last submission, use the same setId
             this.drawnCircle.setId = this.lastSubmission.setId;
           } else {
-            // If x and y are different, use the newly generated setId
             this.drawnCircle.setId = setId;
           }
 
           ctx.beginPath();
-          ctx.arc(circleX, circleY, diameter / 2, 0, 2 * Math.PI);
+          ctx.arc(circleX + diameter / 2, circleY + diameter / 2, diameter / 2, 0, 2 * Math.PI);
           ctx.fillStyle = color;
           ctx.fill();
           ctx.closePath();
 
-          // Store drawn circle information
           this.drawnCircle.diameter = diameter;
           this.drawnCircle.color = color;
           this.drawnCircle.setId = setId;
 
         },
         generateSetId(x, y) {
-        // Generate a unique setId using a combination of x and y
         return `${x}-${y}`;
     },
         
@@ -377,14 +349,14 @@ canvas {
   display: inline-block;
 }
 .button-container {
-  margin-top: 10px; /* Add margin between buttons */
+  margin-top: 10px; 
 }
 .button-container button {
-  margin-right: 10px; /* Add right margin to each button */
+  margin-right: 10px; 
 }
 
 .circle-table {
-  margin-top: 20px; /* Add margin between the canvas and the table */
+  margin-top: 20px; 
 }
 
 .drawnCircle{
